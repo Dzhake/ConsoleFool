@@ -21,6 +21,14 @@ namespace Fool
             Ace
         }
 
+        public static Dictionary<Suits, string> SuitColors = new Dictionary<Suits, string>()
+        {
+            {Suits.Spades,"{#cyan}" },
+            {Suits.Diamonds,"{#yellow}" },
+            {Suits.Hearts,"{#red}" },
+            {Suits.Clubs,"{#green}" },
+        };
+
         public Suits Suit;
 
         public int Value;
@@ -50,13 +58,18 @@ namespace Fool
             return $"{Value} of {Enum.GetName(Suit)}";
         }
 
-        public string ToShortString()
+        public string ToShortString(bool colored = false)
         {
             if (IsFace)
             {
                 return $"{Enum.GetName(Face)?.Substring(0,1)}{Enum.GetName(Suit)?.Substring(0,1)}";
             }
             return $"{Value}{Enum.GetName(Suit)?.Substring(0, 1)}";
+        }
+
+        public string ToColoredString()
+        {
+            return SuitColors[Suit] + ToString() + "{#}";
         }
     }
 }

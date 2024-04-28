@@ -3,8 +3,6 @@
 class Program
 {
 
-    
-
     static void Main(string[] args)
     {
         try
@@ -21,19 +19,23 @@ class Program
             Deck deck = new Deck();
             deck.Shuffle();
 
-            while (true)
+            /*while (true)
             {
-                Console.WriteLine(deck.Draw().ToString());
+                ColorConsole.WriteColorLine(deck.Draw().ToColoredString());
                 string l = Console.ReadLine() ?? "";
                 if (l == "list")
                 {
-                    Console.WriteLine(deck.ListCards());
+                    ColorConsole.WriteColorLine(deck.ListCards());
                 }
                 if (l == "exit")
                 {
                     break;
                 }
-            }
+            }*/
+
+            Console.WriteLine("\x1B[36m imo");
+
+            //Examples.Man();
         }
         catch (Exception e)
         {

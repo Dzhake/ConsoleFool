@@ -50,7 +50,7 @@ namespace Fool
 
             foreach (Card card in Cards)
             {
-                result += card.ToShortString() + ", ";
+                result += card.ToShortString(true) + ", ";
             }
 
             return result;
