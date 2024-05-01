@@ -97,7 +97,7 @@
         {
             if (IsPlayer)
             {
-                ColorConsole.WriteLine($"It's your turn now! Pick any <card> to defence from {card.ToColoredString()}, or input {(Program.DecreaseInput ? "0" : "-1")} to take <card>.");
+                ColorConsole.WriteLine($"It's your turn now! Pick any <card> to <defend> from {card.ToColoredString()}, or input {(Program.DecreaseInput ? "0" : "-1")} to take <cards> from the table.");
                 ColorConsole.WriteLine($"Your hand: {ListCards(card)}");
                 return Game.PlayerInput(this);
             }
@@ -199,7 +199,7 @@
                     }
                 }
 
-                if (selected.IsTrump && Utils.random.Next(1, 3) == 1) return -1; // "Smart" :v
+                if (selected.IsTrump && Utils.random.Next(1, 3) == 1 && Game.deck.Cards.Count > 8) return -1; // "Smart" :v
 
                 return Hand.IndexOf(selected);
             }

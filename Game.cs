@@ -48,7 +48,7 @@ namespace Fool
             TrumpCard = deck.Draw();
             TrumpSuit = TrumpCard.Suit;
             ColorConsole.WriteLine($"Trump suit is <{Enum.GetName(TrumpSuit)}>, because trump card is {TrumpCard.ToColoredString()}");
-            deck.Cards.Insert(0,TrumpCard);
+            deck.Cards.Add(TrumpCard);
 
 #if DEBUG
             foreach (Player p in Players) // prints everybody's cards, for debugging purposes

@@ -7,8 +7,10 @@ class Program
 
     public static int PlayersAmount = 3;
     public static bool ShowHelp = false;
+    public static bool ShowRules = false;
     public static bool DecreaseInput = true;
     public static int TextDelay = 0;
+    public static int TextDelayInterval = 1;
 
     public static string PlayerName = "";
     public static bool SetName = false;
@@ -41,10 +43,19 @@ class Program
                 {
                     PlayersAmount = int.Parse(args[i + 1]);
                     i++;
+                    if (PlayersAmount * 6 > 52)
+                    {
+                        ColorConsole.WriteLine($"<{PlayersAmount}> is higher than maximum allowed number of players, because whole deck is smaller than cards which should be given at start.");
+                        Environment.Exit(0);
+                    }
                 }
                 else if (args[i] == "--help")
                 {
                     ShowHelp = true;
+                }
+                else if (args[i] == "--rules")
+                {
+                    ShowRules = true;
                 }
                 else if (args[i] == "--default-settings")
                 {
@@ -57,6 +68,11 @@ class Program
                 else if (args[i] == "--text-delay" && args.Length > (i + 1))
                 {
                     TextDelay = int.Parse(args[i + 1]);
+                    i++;
+                }
+                else if (args[i] == "--text-delay-interval" && args.Length > (i + 1))
+                {
+                    TextDelayInterval = int.Parse(args[i + 1]);
                     i++;
                 }
                 else if (args[i] == "--candy")
@@ -115,26 +131,50 @@ class Program
 
             ShowHelp = ShowHelp || !bool.Parse(Settings["wasRun"]);
 
-            if (!ShowHelp)
-            {
-                Game.Run(PlayersAmount);
-            }
-            else
+            bool play = true;
+
+            if (ShowHelp)
             {
                 ColorConsole.WriteLine("Welcome ʕっ•ᴥ•ʔっ! This is card game \"Fool\".");
-                ColorConsole.WriteLine("Rules are simple:\nEverybody gets 6 <cards>. Then, someone <attacks>. <Defender> needs to use a <card> of same suit and higher value or trump.");
+                ColorConsole.WriteLine("Arguments (ex. \"./Fool.exe --rules\", to run game with \"--rules\" argument, separate arguments by spaces to use more than one) list:");
+                ColorConsole.WriteLine("--rules - see rules (explained pretty badly :c, use google instead)");
+                ColorConsole.WriteLine("--help - shows this message");
+                ColorConsole.WriteLine("--default-settings - do not load settings, instead load default and save");
+                ColorConsole.WriteLine("--name X or --set-name X - Changes your name for current run, or saves it to settings");
+                ColorConsole.WriteLine("--sort-type X - Changes how cards for current run are sorted, 1 is by rank and 2 is by suit.");
+                ColorConsole.WriteLine("--players-amount X - Changes players amount, default value is 3. (tbh not really recommended to use)");
+                ColorConsole.WriteLine("--seed X - Sets random seed");
+                ColorConsole.WriteLine("--text-delay X - Text is split by characters and show after delay, useful if you're confused when too many text appears at once.");
+                ColorConsole.WriteLine("--text-delay-interval X - Text delay must be int, but if it's 1, then output is pretty slow, so I made this. Each --text-delay-interval charcaters --text-delay is applied.");
+                ColorConsole.WriteLine("--no-decrease - By default 1 is decreased from each input, so actually -1 is doing nothing, and picking card starts from 0. You can use it, if you want.");
+                ColorConsole.WriteLine("{#000000}There are also some easter eggs... or candies.. doesn't matter..{#}");
+
+
+                Console.WriteLine();
+                ColorConsole.WriteLine("This message is shown once, later you can use --help to see it again, or --default-settings.");
+
+                Settings["wasRun"] = "true";
+                SaveSettings(false, false);
+                play = false;
+            }
+
+            if (ShowRules)
+            {
+                ColorConsole.WriteLine("Rules are simple:\nEverybody gets 6 <cards>. After one, next card in deck becomes trump card. It's suit is trump suit, which beats all other suits. Trump card goes to the bottom of deck, visible for everyone.");
+                ColorConsole.WriteLine("Then, someone <attacks>. <Defender> needs to use a <card> of same suit and higher value or trump.");
                 ColorConsole.WriteLine("Or he can take all <cards> from the table, if he can't or doesn't want to <defend>.");
                 ColorConsole.WriteLine("If he <defended>, everybody can add <cards> to the table, but only <cards> of same value as already on the table.");
                 ColorConsole.WriteLine("<Defender> needs to <defend> from each added <card> too, or take all <cards>.");
                 ColorConsole.WriteLine("Total <attacking> <cards> amount can't be higher than the amount of <cards> the <defender> had at the start of turn, because otherwise he can't beat all of them.");
                 ColorConsole.WriteLine("When turns ends, everybody takes up to 6 <cards>. If the deck is empty, then people stop takings <cards>, and next turn starts.");
                 ColorConsole.WriteLine("First who loses all his <cards>, while deck is empty, wins.");
-                ColorConsole.WriteLine("Usually the game doesn't end when someone wins. Instead people play until someone stays, and everybody else wins. Person who lost is called \"Fool\".");
-                Console.WriteLine();
-                ColorConsole.WriteLine("This message is shown once, later you can use --help to see it again, or --default-settings.");
+                ColorConsole.WriteLine("Usually the game doesn't end when someone wins. Instead people play until someone stays, and everybody else wins. Person who lost is called \"Fool\". (But in this game only one winner {-}because I'm lazy{-})");
+                play = false;
+            }
 
-                Settings["wasRun"] = "true";
-                SaveSettings(false, false);
+            if (play)
+            {
+                Game.Run(PlayersAmount);
             }
         }
         catch (Exception e)
