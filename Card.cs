@@ -4,29 +4,18 @@ namespace Fool
 {
     public class Card
     {
-        public enum Suits
-        {
-            None,
-            Spades,
-            Diamonds,
-            Hearts,
-            Clubs
-        }
+        public enum Suits {None, Spades, Diamonds, Hearts, Clubs}
 
-        public enum FaceValues
-        {
-            Jack,
-            Queen,
-            King,
-            Ace
-        }
+        public enum FaceValues {Jack, Queen, King, Ace}
+
+        public enum SortType {None, Rank, Suit}
 
         public static Dictionary<Suits, string> SuitColors = new Dictionary<Suits, string>()
         {
-            {Suits.Spades,"{#cyan}" },
-            {Suits.Diamonds,"{#yellow}" },
-            {Suits.Hearts,"{#red}" },
-            {Suits.Clubs,"{#green}" },
+            {Suits.Spades,"{#404a7f}" },
+            {Suits.Diamonds,"{#f06b3f}" },
+            {Suits.Hearts,"{#f03464}" },
+            {Suits.Clubs,"{#23716b}" },
         };
 
         public Suits Suit;
@@ -35,6 +24,8 @@ namespace Fool
         
         public bool IsFace = false;
         public FaceValues Face;
+
+        public bool IsTrump => Game.TrumpSuit == Suit;
 
         public Card(int value = -1, Suits suit = Suits.None)
         {
@@ -58,18 +49,47 @@ namespace Fool
             return $"{Value} of {Enum.GetName(Suit)}";
         }
 
-        public string ToShortString(bool colored = false)
+        public string ToShortString(bool colored = true)
         {
+            string result = "";
             if (IsFace)
             {
-                return $"{Enum.GetName(Face)?.Substring(0,1)}{Enum.GetName(Suit)?.Substring(0,1)}";
+                result = $"{Enum.GetName(Face)?.Substring(0,1)}{Enum.GetName(Suit)?.Substring(0,1)}";
+            } else
+            {
+                result = $"{Value}{Enum.GetName(Suit)?.Substring(0, 1)}";
             }
-            return $"{Value}{Enum.GetName(Suit)?.Substring(0, 1)}";
+            
+            if (colored)
+            {
+                result = SuitColors[Suit] + result + "{#}";
+            }
+
+            return result;
         }
 
         public string ToColoredString()
         {
             return SuitColors[Suit] + ToString() + "{#}";
+        }
+
+        public bool Beats(Card card)
+        {
+            if (IsTrump && !card.IsTrump) return true; // i.e. if spades are trump, then spades beat any other suit
+            if (Suit == card.Suit && Value > card.Value) return true; // beat card of same suit
+
+            return false;
+        }
+
+        public bool Addable()
+        {
+            bool canAdd = false;
+            foreach (Card c in Game.Table)
+            {
+                if (Value == c.Value)
+                    canAdd = true;
+            }
+            return canAdd;
         }
     }
 }

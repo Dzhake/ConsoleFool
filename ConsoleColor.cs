@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Drawing;
+using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 // https://gist.github.com/RickStrahl/52c9ee43bd2723bcdf7bf4d24b029768
 
@@ -9,51 +11,6 @@ namespace Fool
     /// </summary>
     public static class ColorConsole
     {
-        /// <summary>
-        /// WriteLine with color
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="color"></param>
-        public static void WriteLine(string text, ConsoleColor? color = null)
-        {
-            if (color.HasValue)
-            {
-                var oldColor = System.Console.ForegroundColor;
-                if (color == oldColor)
-                    Console.WriteLine(text);
-                else
-                {
-                    Console.ForegroundColor = color.Value;
-                    Console.WriteLine(text);
-                    Console.ForegroundColor = oldColor;
-                }
-            }
-            else
-                Console.WriteLine(text);
-        }
-
-        /// <summary>
-        /// Writes out a line with a specific color as a string
-        /// </summary>
-        /// <param name="text">Text to write</param>
-        /// <param name="color">A console color. Must match ConsoleColors collection names (case insensitive)</param>
-        public static void WriteLine(string text, string color)
-        {
-            if (string.IsNullOrEmpty(color))
-            {
-                WriteLine(text);
-                return;
-            }
-
-            if (!Enum.TryParse(color, true, out ConsoleColor col))
-            {
-                WriteLine(text);
-            }
-            else
-            {
-                WriteLine(text, col);
-            }
-        }
 
         /// <summary>
         /// Write with color
@@ -91,9 +48,10 @@ namespace Fool
                 return;
             }
 
-            if (!ConsoleColor.TryParse(color, true, out ConsoleColor col))
+
+            if (int.TryParse(color.Substring(0,1), out int result) || !ConsoleColor.TryParse(color, true, out ConsoleColor col))
             {
-                Write(text);
+                Console.Write($"{new RGB(color).ToANSI()}{text}\x1b[0m");
             }
             else
             {
@@ -103,35 +61,16 @@ namespace Fool
 
         #region Wrappers and Templates
 
-
-        /// <summary>
-        /// Writes a line of header text wrapped in a in a pair of lines of dashes:
-        /// -----------
-        /// Header Text
-        /// -----------
-        /// and allows you to specify a color for the header. The dashes are colored
-        /// </summary>
-        /// <param name="headerText">Header text to display</param>
-        /// <param name="wrapperChar">wrapper character (-)</param>
-        /// <param name="headerColor">Color for header text (yellow)</param>
-        /// <param name="dashColor">Color for dashes (gray)</param>
-        public static void WriteWrappedHeader(string headerText,
-                                                char wrapperChar = '-',
-                                                ConsoleColor headerColor = ConsoleColor.Yellow,
-                                                ConsoleColor dashColor = ConsoleColor.DarkGray)
-        {
-            if (string.IsNullOrEmpty(headerText))
-                return;
-
-            string line = new string(wrapperChar, headerText.Length);
-
-            WriteLine(line, dashColor);
-            WriteLine(headerText, headerColor);
-            WriteLine(line, dashColor);
-        }
-
         private static Lazy<Regex> colorBlockRegEx = new Lazy<Regex>(
-            () => new Regex(@"\{#(?<color>.*?)\}(?<text>[^[]*?)\{#\}", RegexOptions.IgnoreCase),
+            () => new Regex(@"\{#(?<color>.*?)\}(?<text>.*?)\{#\}", RegexOptions.IgnoreCase),
+            isThreadSafe: true);
+
+        private static Lazy<Regex> underlinedBlockRegEx = new Lazy<Regex>(
+            () => new Regex(@"\{_\}(?<text>.*?)\{_\}", RegexOptions.IgnoreCase),
+            isThreadSafe: true);
+
+        private static Lazy<Regex> colorBlockFromDictRegEx = new Lazy<Regex>(
+            () => new Regex(@"\<(?<text>.*?)\>", RegexOptions.IgnoreCase),
             isThreadSafe: true);
 
         /// <summary>
@@ -140,89 +79,73 @@ namespace Fool
         /// </summary>
         /// <param name="text">Text to display</param>
         /// <param name="baseTextColor">Base text color</param>
-        public static void WriteColorLine(string text, ConsoleColor? baseTextColor = null)
+        public static void WriteLine(string text, ConsoleColor? baseTextColor = null)
         {
             if (baseTextColor == null)
                 baseTextColor = Console.ForegroundColor;
 
             if (string.IsNullOrEmpty(text))
             {
-                WriteLine(string.Empty);
+                Console.WriteLine(string.Empty);
                 return;
             }
 
-            int at = text.IndexOf("{");
-            int at2 = text.IndexOf("}");
-            if (at == -1 || at2 <= at)
-            {
-                WriteLine(text, baseTextColor);
-                return;
-            }
 
-            while (true)
+            while (true) //{#hexhex}text{#}
             {
                 var match = colorBlockRegEx.Value.Match(text);
-                if (match.Length < 1)
+                if (match.Length < 1) break;
+
+                    string colorVal = match.Groups["color"].Value;
+                text = text.Remove(match.Index, match.Length);
+
+#pragma warning disable CS8600 // sorry i just don't understand what's wrong
+                if (ColoredWords.Color.TryGetValue(colorVal, out string value))
+#pragma warning restore CS8600
                 {
-                    Write(text, baseTextColor);
-                    break;
+                    colorVal = value;
                 }
 
-                // write up to expression
-                Write(text.Substring(0, match.Index), baseTextColor);
+                text = text.Insert(match.Index, $"{new RGB(colorVal).ToANSI()}{match.Groups["text"].Value}\x1b[0m");
+            }
 
-                // strip out the expression
+            while (true) //<text>
+            {
+                var match = colorBlockFromDictRegEx.Value.Match(text);
+                if (match.Length < 1) break;
+
                 string highlightText = match.Groups["text"].Value;
-                string colorVal = match.Groups["color"].Value;
+                string colorVal;
+                if (int.TryParse(highlightText, out _) || Game.TemplatePlayerNames.Contains(highlightText) || Program.PlayerName == highlightText) //highlight numbers and names
+                {
+                    colorVal = "f08a04";
+                }
+                else
+                {
+                    colorVal = ColoredWords.Words[highlightText];
+                }
+                text = text.Remove(match.Index, match.Length);
+                text = text.Insert(match.Index, $"{new RGB(colorVal).ToANSI()}{match.Groups["text"].Value}\x1b[0m");
+            }
 
-                Write(highlightText, colorVal);
+            while (true) //{_}text{_}
+            {
+                var match = underlinedBlockRegEx.Value.Match(text);
+                if (match.Length < 1) break;
 
-                // remainder of string
-                text = text.Substring(match.Index + match.Value.Length);
+                text = text.Remove(match.Index, match.Length);
+                text = text.Insert(match.Index, $"\x1b[4m{match.Groups["text"].Value}\x1b[0m");
+            }
+
+            foreach (char c in text)
+            {
+                if (!"\u001b[38;2m".Contains(c))
+                    Thread.Sleep(Program.TextDelay);
+                    
+                Console.Write(c);
             }
 
             Console.WriteLine();
-        }
-
-        #endregion
-
-        #region Success, Error, Info, Warning Wrappers
-
-        /// <summary>
-        /// Write a Success Line - green
-        /// </summary>
-        /// <param name="text">Text to write out</param>
-        public static void WriteSuccess(string text)
-        {
-            WriteLine(text, ConsoleColor.Green);
-        }
-
-        /// <summary>
-        /// Write a Error Line - Red
-        /// </summary>
-        /// <param name="text">Text to write out</param>
-        public static void WriteError(string text)
-        {
-            WriteLine(text, ConsoleColor.Red);
-        }
-
-        /// <summary>
-        /// Write a Warning Line - Yellow
-        /// </summary>
-        /// <param name="text">Text to Write out</param>
-        public static void WriteWarning(string text)
-        {
-            WriteLine(text, ConsoleColor.DarkYellow);
-        }
-
-
-        /// <summary>
-        /// Write a Info Line - dark cyan
-        /// </summary>
-        /// <param name="text">Text to write out</param>
-        public static void WriteInfo(string text)
-        {
-            WriteLine(text, ConsoleColor.DarkCyan);
         }
 
         #endregion

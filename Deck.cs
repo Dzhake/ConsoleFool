@@ -9,6 +9,8 @@ namespace Fool
         public List<Card> Cards;
         public List<Card> Discarded;
 
+        public bool reshuffle = false;
+
         public Deck()
         {
             Cards = new List<Card>();
@@ -29,9 +31,17 @@ namespace Fool
 
         public Card Draw(int position = 0)
         {
-            if (Cards.Count == 1)
+            if (Cards.Count == 0)
             {
-                ReShuffle();
+                if (reshuffle)
+                {
+                    ReShuffle();
+                }
+                else
+                {
+                    throw new IndexOutOfRangeException("Bro, deck is empty and not reshufflable, something went wrong :v");
+                }
+                
             }
 
             position = Math.Clamp(position, 0, Cards.Count);
