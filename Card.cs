@@ -4,7 +4,7 @@ namespace Fool
 {
     public class Card
     {
-        public enum Suits {None, Spades, Diamonds, Hearts, Clubs}
+        public enum Suits {None, Spades, Diamonds, Hearts, Clubs, Wildcard}
 
         public enum FaceValues {Jack, Queen, King, Ace}
 
@@ -16,6 +16,7 @@ namespace Fool
             {Suits.Diamonds,"{#f06b3f}" },
             {Suits.Hearts,"{#f03464}" },
             {Suits.Clubs,"{#23716b}" },
+            {Suits.Wildcard,"{##ffffff}{#000000}" },
         };
 
         public Suits Suit;
@@ -62,7 +63,7 @@ namespace Fool
             
             if (colored)
             {
-                result = SuitColors[Suit] + result + "{#}";
+                result = SuitColors[Suit] + result + "{#}" + (Suit == Suits.Wildcard ? "{##}" : "");
             }
 
             return result;
@@ -70,13 +71,14 @@ namespace Fool
 
         public string ToColoredString()
         {
-            return SuitColors[Suit] + ToString() + "{#}";
+            return SuitColors[Suit] + ToString() + "{#}" + (Suit == Suits.Wildcard ? "{##}" : "");
         }
 
         public bool Beats(Card card)
         {
             if (IsTrump && !card.IsTrump) return true; // i.e. if spades are trump, then spades beat any other suit
             if (Suit == card.Suit && Value > card.Value) return true; // beat card of same suit
+            if ((Suit == Suits.Wildcard || card.Suit == Suits.Wildcard) && Value > card.Value) return true; // If any is wildcard and my value is greater
 
             return false;
         }

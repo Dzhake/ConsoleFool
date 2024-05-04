@@ -14,6 +14,7 @@
             {"Diamonds","f06b3f" },
             {"Hearts","f03464" },
             {"Clubs","23716b" },
+            {"Wildcard","00e42e" },
 
             {"player","ec0044" },
             {"card", "00e1a4"},

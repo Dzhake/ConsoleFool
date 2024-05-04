@@ -24,6 +24,15 @@ class Program
         {"name","Dzhake" },
     };
     public static bool DefaultSettings = false;
+
+    public enum Modifier {
+        Wildcards
+    }
+
+    public static Dictionary<Modifier,bool> Modifiers = new Dictionary<Modifier, bool>()
+    {
+        {Modifier.Wildcards, false},
+    };
     
 
     static void Main(string[] args)
@@ -95,6 +104,12 @@ class Program
                     sortType = (Card.SortType)int.Parse(args[i + 1]);
                     i++;
                 }
+                else if ((args[i] == "--modifier" || args[i] == "-m") && args.Length > (i + 1))
+                {
+                    Modifier m = (Modifier)Enum.Parse(typeof(Modifier), args[i + 1]);
+                    Modifiers[m] = true;
+                    i++;
+                }
                 else
                 {
                     ColorConsole.WriteLine($"Unknown flag {{#red}}{args[i]}{{#}}!");
@@ -112,7 +127,7 @@ class Program
                     if (kv.Length > 1)
                         Settings[kv[0]] = kv[1];
                 }
-                ColorConsole.WriteLine("{#green}Settings loaded successfully!{#}");
+                //ColorConsole.WriteLine("{#green}Settings loaded successfully!{#}");
             }
             else
             {
@@ -136,6 +151,7 @@ class Program
             if (ShowHelp)
             {
                 ColorConsole.WriteLine("Welcome ʕっ•ᴥ•ʔっ! This is card game \"Fool\".");
+                ColorConsole.WriteLine("IMPORTANT! {#red}This text should be red{#}. If instead of seeing colors here you see a lot of weird symbols, use other terminal! Don't forget to use --help there.");
                 ColorConsole.WriteLine("Arguments (ex. \"./Fool.exe --rules\", to run game with \"--rules\" argument, separate arguments by spaces to use more than one) list:");
                 ColorConsole.WriteLine("--rules - see rules (explained pretty badly :c, use google instead)");
                 ColorConsole.WriteLine("--help - shows this message");

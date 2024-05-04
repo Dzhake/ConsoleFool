@@ -1,5 +1,4 @@
 ﻿
-
 namespace Fool
 {
     public class Deck
@@ -20,6 +19,14 @@ namespace Fool
                 for (int value = 2; value < 15; value++)
                 {
                     Cards.Add(new Card(value, (Card.Suits)suit));
+                }
+            }
+
+            if (Program.Modifiers[Program.Modifier.Wildcards])
+            {
+                for (int value = 2; value < 15; value++)
+                {
+                    Cards.Add(new Card(value, Card.Suits.Wildcard));
                 }
             }
         }

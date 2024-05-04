@@ -45,9 +45,9 @@ namespace Fool
             }
         }
 
-        public string ToANSI()
+        public string ToANSI(bool background = false)
         {
-            return $"\x1B[38;2;{R};{G};{B}m";
+            return $"\x1B[{(background ? "4" : "3")}8;2;{R};{G};{B}m";
         }
 
         public string ToHex(bool includeSharp = true)

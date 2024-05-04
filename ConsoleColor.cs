@@ -13,7 +13,11 @@ namespace Fool
     {
 
         private static Lazy<Regex> colorBlockRegEx = new Lazy<Regex>(
-            () => new Regex(@"\{#(?<color>.*?)\}(?<text>.*?)\{#\}", RegexOptions.IgnoreCase),
+            () => new Regex(@"\{#(?<color>[^#]*?)\}(?<text>.*?)\{#\}", RegexOptions.IgnoreCase),
+            isThreadSafe: true);
+
+        private static Lazy<Regex> backgroundColorBlockRegEx = new Lazy<Regex>(
+            () => new Regex(@"\{##(?<color>[^#]*?)\}(?<text>.*?)\{##\}", RegexOptions.IgnoreCase),
             isThreadSafe: true);
 
         private static Lazy<Regex> underlinedBlockRegEx = new Lazy<Regex>(
@@ -51,7 +55,7 @@ namespace Fool
                 var match = colorBlockRegEx.Value.Match(text);
                 if (match.Length < 1) break;
 
-                    string colorVal = match.Groups["color"].Value;
+                string colorVal = match.Groups["color"].Value;
                 text = text.Remove(match.Index, match.Length);
 
 #pragma warning disable CS8600 // sorry i just don't understand what's wrong
@@ -62,6 +66,24 @@ namespace Fool
                 }
 
                 text = text.Insert(match.Index, $"{new RGB(colorVal).ToANSI()}{match.Groups["text"].Value}\x1b[0m");
+            }
+
+            while (true) //{##hexhex}text{##}
+            {
+                var match = backgroundColorBlockRegEx.Value.Match(text);
+                if (match.Length < 1) break;
+
+                string colorVal = match.Groups["color"].Value;
+                text = text.Remove(match.Index, match.Length);
+
+#pragma warning disable CS8600 // sorry i just don't understand what's wrong
+                if (ColoredWords.Color.TryGetValue(colorVal, out string value))
+#pragma warning restore CS8600
+                {
+                    colorVal = value;
+                }
+
+                text = text.Insert(match.Index, $"{new RGB(colorVal).ToANSI(true)}{match.Groups["text"].Value}\x1b[0m");
             }
 
             while (true) //<text>

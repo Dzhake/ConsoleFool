@@ -50,13 +50,6 @@ namespace Fool
             ColorConsole.WriteLine($"Trump suit is <{Enum.GetName(TrumpSuit)}>, because trump card is {TrumpCard.ToColoredString()}");
             deck.Cards.Add(TrumpCard);
 
-#if DEBUG
-            foreach (Player p in Players) // prints everybody's cards, for debugging purposes
-            {
-                ColorConsole.WriteLine(p.ListCards());
-            }
-#endif
-
             // Pick attacking and defencing player
             AttackingPlayer = Utils.RandomListIndex(Players);
             DefencingPlayer = (AttackingPlayer + 1) % Players.Count;
